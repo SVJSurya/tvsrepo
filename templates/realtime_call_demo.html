@@ -92,15 +92,37 @@
             padding: 8px 12px;
             border-radius: 15px;
             max-width: 80%;
+            word-wrap: break-word;
         }
-        .customer-msg {
+        
+        /* Customer panel styling */
+        #customerConversation .customer-msg {
             background: #2196F3;
             margin-left: auto;
             text-align: right;
+            color: white;
         }
-        .agent-msg {
+        
+        #customerConversation .agent-msg {
             background: #4CAF50;
             margin-right: auto;
+            text-align: left;
+            color: white;
+        }
+        
+        /* Agent panel styling */
+        #agentConversation .customer-msg {
+            background: #2196F3;
+            margin-right: auto;
+            text-align: left;
+            color: white;
+        }
+        
+        #agentConversation .agent-msg {
+            background: #4CAF50;
+            margin-left: auto;
+            text-align: right;
+            color: white;
         }
         .typing-indicator {
             display: none;
@@ -337,21 +359,24 @@
         }
 
         function addMessage(sender, text) {
-            const conversation = document.getElementById(sender + 'Conversation');
+            if (sender === 'customer') {
+                // Customer message - show on customer side as outgoing, agent side as incoming
+                addMessageToSide('customerConversation', text, 'customer-msg');
+                addMessageToSide('agentConversation', text, 'customer-msg');
+            } else if (sender === 'agent') {
+                // Agent message - show on agent side as outgoing, customer side as incoming
+                addMessageToSide('agentConversation', text, 'agent-msg');
+                addMessageToSide('customerConversation', text, 'agent-msg');
+            }
+        }
+
+        function addMessageToSide(conversationId, text, messageClass) {
+            const conversation = document.getElementById(conversationId);
             const message = document.createElement('div');
-            message.className = `message ${sender}-msg`;
+            message.className = `message ${messageClass}`;
             message.textContent = text;
             conversation.appendChild(message);
             conversation.scrollTop = conversation.scrollHeight;
-            
-            // Also add to the other side for full conversation view
-            const otherSide = sender === 'customer' ? 'agent' : 'customer';
-            const otherConversation = document.getElementById(otherSide + 'Conversation');
-            const otherMessage = document.createElement('div');
-            otherMessage.className = `message ${sender}-msg`;
-            otherMessage.textContent = text;
-            otherConversation.appendChild(otherMessage);
-            otherConversation.scrollTop = otherConversation.scrollHeight;
         }
 
         function showTypingIndicator(side) {
