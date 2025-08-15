@@ -598,6 +598,133 @@ async def reports_page():
     """
 
 
+@app.get("/payments", response_class=HTMLResponse)
+async def payments_page():
+    """Serve payments management page"""
+    return """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Payment Management - EMI VoiceBot</title>
+        <style>
+            body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+            .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+            .header { text-align: center; margin-bottom: 30px; color: #2a5298; }
+            .payment-card { border: 1px solid #ddd; margin: 10px 0; padding: 15px; border-radius: 8px; background: #f9f9f9; }
+            .status-badge { padding: 4px 8px; border-radius: 12px; color: white; font-size: 12px; margin-left: 10px; }
+            .status-sent { background: #007bff; }
+            .status-paid { background: #28a745; }
+            .status-pending { background: #ffc107; color: #000; }
+            .status-failed { background: #dc3545; }
+            .back-btn { background: #6c757d; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; margin-bottom: 20px; display: inline-block; }
+            .send-link-btn { background: #007bff; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; }
+            .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
+            .stat-card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; }
+            .stat-number { font-size: 2em; font-weight: bold; color: #2a5298; }
+            .payment-actions { margin-top: 15px; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>💳 Payment Management System</h1>
+                <p>Track and manage EMI payment links and transactions</p>
+            </div>
+            
+            <a href="/" class="back-btn">← Back to Dashboard</a>
+            
+            <div class="stats-grid" id="payment-stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="total-links">0</div>
+                    <div>Total Links Sent</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="successful-payments">0</div>
+                    <div>Successful Payments</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="pending-payments">0</div>
+                    <div>Pending Payments</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="total-amount">₹0</div>
+                    <div>Total Collected</div>
+                </div>
+            </div>
+            
+            <h3>📋 Recent Payment Links</h3>
+            <div id="payment-links">
+                <p>Loading payment data...</p>
+            </div>
+        </div>
+        
+        <script>
+            async function loadPaymentData() {
+                try {
+                    // Load sent payment links
+                    const linksResponse = await fetch('/api/payment/sent-links');
+                    const linksData = await linksResponse.json();
+                    
+                    // Load recent payments
+                    const paymentsResponse = await fetch('/api/payments/recent');
+                    const paymentsData = await paymentsResponse.json();
+                    
+                    // Update statistics
+                    document.getElementById('total-links').textContent = linksData.total_sent || 0;
+                    document.getElementById('successful-payments').textContent = paymentsData.payments?.filter(p => p.status === 'paid').length || 0;
+                    document.getElementById('pending-payments').textContent = paymentsData.payments?.filter(p => p.status === 'pending').length || 0;
+                    
+                    const totalAmount = paymentsData.payments?.filter(p => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0) || 0;
+                    document.getElementById('total-amount').textContent = '₹' + totalAmount.toLocaleString();
+                    
+                    // Display payment links
+                    const linksContainer = document.getElementById('payment-links');
+                    if (linksData.sent_links && linksData.sent_links.length > 0) {
+                        linksContainer.innerHTML = linksData.sent_links.map(link => `
+                            <div class="payment-card">
+                                <div style="display: flex; justify-content: between; align-items: center;">
+                                    <div>
+                                        <strong>Customer:</strong> ${link.customer_name} <br>
+                                        <strong>Phone:</strong> ${link.phone} <br>
+                                        <strong>Amount:</strong> ₹${link.amount?.toLocaleString() || 'N/A'} <br>
+                                        <strong>Sent:</strong> ${link.sent_at ? new Date(link.sent_at).toLocaleString() : 'N/A'}
+                                        <span class="status-badge status-sent">Link Sent</span>
+                                    </div>
+                                    <div class="payment-actions">
+                                        <button class="send-link-btn" onclick="resendLink('${link.payment_id}')">Resend Link</button>
+                                    </div>
+                                </div>
+                                <div style="margin-top: 10px; font-size: 0.9em; color: #666;">
+                                    <strong>Payment ID:</strong> ${link.payment_id}<br>
+                                    <strong>Link:</strong> <code style="background: #f1f1f1; padding: 2px 4px;">${link.payment_link || 'N/A'}</code>
+                                </div>
+                            </div>
+                        `).join('');
+                    } else {
+                        linksContainer.innerHTML = '<p>No payment links sent yet.</p>';
+                    }
+                    
+                } catch (error) {
+                    console.error('Error loading payment data:', error);
+                    document.getElementById('payment-links').innerHTML = '<p>Error loading payment data</p>';
+                }
+            }
+            
+            function resendLink(paymentId) {
+                alert('Resend functionality would be implemented here for payment ID: ' + paymentId);
+            }
+            
+            // Load data when page loads
+            loadPaymentData();
+            
+            // Refresh every 30 seconds
+            setInterval(loadPaymentData, 30000);
+        </script>
+    </body>
+    </html>
+    """
+
+
 @app.get("/api/stats")
 async def get_stats():
     """Get dashboard statistics"""

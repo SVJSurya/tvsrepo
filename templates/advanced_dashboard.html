@@ -361,7 +361,7 @@
                     <i class="fas fa-tachometer-alt"></i>
                     Overview
                 </a>
-                <a href="#" class="nav-item" data-section="calls">
+                <a href="/live-demo" class="nav-item">
                     <i class="fas fa-phone"></i>
                     Live Calls
                 </a>
@@ -373,7 +373,7 @@
                     <i class="fas fa-users"></i>
                     Customers
                 </a>
-                <a href="#" class="nav-item" data-section="payments">
+                <a href="/payments" class="nav-item">
                     <i class="fas fa-credit-card"></i>
                     Payments
                 </a>
@@ -603,17 +603,22 @@
         function setupNavigation() {
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    
-                    // Remove active class from all items
-                    document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
-                    
-                    // Add active class to clicked item
-                    this.classList.add('active');
-                    
-                    // Show/hide sections
-                    const section = this.dataset.section;
-                    showSection(section);
+                    // Only prevent default for in-page sections (items with data-section attribute)
+                    if (this.dataset.section) {
+                        e.preventDefault();
+                        
+                        // Remove active class from all items
+                        document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+                        
+                        // Add active class to clicked item
+                        this.classList.add('active');
+                        
+                        // Show/hide sections
+                        const section = this.dataset.section;
+                        showSection(section);
+                    }
+                    // For links with href attributes (like /customers, /payments, etc.), 
+                    // let them navigate normally (don't prevent default)
                 });
             });
         }
