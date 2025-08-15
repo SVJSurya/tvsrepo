@@ -3,6 +3,7 @@
 ## Quick Setup for Other Machines
 
 ### Prerequisites
+
 - **Python 3.8+** installed
 - **Git** (to clone the repository)
 - **Internet connection** (for package installation)
@@ -23,25 +24,30 @@ cd Manya-TVS-Project
 If you prefer manual setup or the automated script doesn't work:
 
 #### 1. Create Virtual Environment
+
 ```bash
 python3 -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
 #### 2. Install Dependencies
+
 ```bash
 pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
 #### 3. Configure Environment
+
 Copy `.env.example` to `.env` and update with your credentials:
+
 ```bash
 cp .env.example .env
 # Edit .env with your actual API keys and credentials
 ```
 
 #### 4. Start the Server
+
 ```bash
 python advanced_ui_server.py
 ```
@@ -49,12 +55,14 @@ python advanced_ui_server.py
 ### 🔑 Required API Keys & Credentials
 
 #### 1. Google AI API Key (FREE)
+
 - Visit: https://makersuite.google.com/app/apikey
 - Create new API key
 - Add to `.env` file: `GOOGLE_API_KEY=your_api_key_here`
 - **Free Tier**: 15 requests/minute, 1M tokens/month
 
 #### 2. Gmail SMTP (For Email Features)
+
 - Enable 2-Factor Authentication on Gmail
 - Generate App Password: https://support.google.com/accounts/answer/185833
 - Add to `.env` file:
@@ -64,6 +72,7 @@ python advanced_ui_server.py
   ```
 
 #### 3. Optional Credentials
+
 - **Twilio**: For SMS/Voice (if needed)
 - **OpenAI**: Fallback AI service
 - **Razorpay**: Payment processing
@@ -73,13 +82,13 @@ python advanced_ui_server.py
 
 After successful setup:
 
-| Interface | URL | Description |
-|-----------|-----|-------------|
-| **Advanced Dashboard** | http://localhost:8001 | Main admin interface |
-| **Live Call Demo** | http://localhost:8001/live-demo | Interactive voice demo |
-| **Voice Demo** | http://localhost:8001/voice-demo | Voice conversation interface |
-| **API Documentation** | http://localhost:8001/docs | FastAPI auto-generated docs |
-| **Health Check** | http://localhost:8001/health | System status |
+| Interface              | URL                              | Description                  |
+| ---------------------- | -------------------------------- | ---------------------------- |
+| **Advanced Dashboard** | http://localhost:8001            | Main admin interface         |
+| **Live Call Demo**     | http://localhost:8001/live-demo  | Interactive voice demo       |
+| **Voice Demo**         | http://localhost:8001/voice-demo | Voice conversation interface |
+| **API Documentation**  | http://localhost:8001/docs       | FastAPI auto-generated docs  |
+| **Health Check**       | http://localhost:8001/health     | System status                |
 
 ### 📁 Project Structure
 
@@ -131,6 +140,7 @@ curl http://localhost:8001/health
 ### 🔧 Production Deployment
 
 #### Docker Setup (Recommended)
+
 ```dockerfile
 FROM python:3.9-slim
 
@@ -145,6 +155,7 @@ CMD ["python", "advanced_ui_server.py"]
 ```
 
 #### Environment Variables for Production
+
 ```bash
 # Production settings
 DEBUG_MODE=False
@@ -166,6 +177,7 @@ SECRET_KEY=your_super_secret_key_here
 #### Common Issues
 
 1. **Import Errors**
+
    ```bash
    # Ensure virtual environment is activated
    source venv/bin/activate
@@ -173,12 +185,14 @@ SECRET_KEY=your_super_secret_key_here
    ```
 
 2. **Google AI API Errors**
+
    ```bash
    # Check API key configuration
    python test_google_ai.py
    ```
 
 3. **Email Not Sending**
+
    ```bash
    # Test SMTP configuration
    python test_gmail_smtp.py
@@ -192,6 +206,7 @@ SECRET_KEY=your_super_secret_key_here
    ```
 
 #### System Requirements
+
 - **RAM**: 2GB minimum, 4GB recommended
 - **Storage**: 1GB free space
 - **OS**: Linux, macOS, Windows (WSL recommended)
@@ -200,11 +215,13 @@ SECRET_KEY=your_super_secret_key_here
 ### 📊 Monitoring & Logs
 
 #### Log Files
+
 - Application logs: `logs/app.log`
 - Error logs: `logs/error.log`
 - Access logs: `logs/access.log`
 
 #### Health Monitoring
+
 ```bash
 # Check system health
 curl http://localhost:8001/health

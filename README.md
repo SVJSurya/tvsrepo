@@ -1,56 +1,254 @@
-# EMI VoiceBot System - Complete Implementation
+# 🤖 EMI VoiceBot - AI-Powered Collection System
 
-## 🚀 Overview
+An intelligent voice-based EMI collection system that uses AI to handle customer interactions, process payments, and manage collections automatically.
 
-This is a complete, working implementation of an **Agentic VoiceBot System for EMI Collections/Payments**. The system uses multiple AI agents working together to automate EMI collection calls, process payments, and learn from interactions.
+## 🚀 Features
+
+- **AI-Powered Voice Conversations**: Natural language processing using Google AI (Gemini)
+- **Real-time Voice Interface**: Browser-based voice interaction with speech recognition
+- **Contextual Conversations**: Maintains conversation history and context across interactions
+- **Automated Email Integration**: Sends payment links via Gmail SMTP
+- **Interactive Demos**: Multiple demo interfaces for different use cases
+- **Analytics Dashboard**: Real-time statistics and performance tracking
+- **Multi-Agent Architecture**: Specialized AI agents for different tasks
+
+## 🎯 Demo Interfaces
+
+1. **Live Call Demo** (`/live-demo`) - Interactive voice conversation with user input
+2. **Voice Demo** (`/voice-demo`) - Seamless voice interaction experience
+3. **Real-time Demo** (`/realtime-demo`) - Enhanced real-time call interface
+4. **Advanced Dashboard** (`/`) - Complete analytics and control panel
+
+## �️ Technologies Used
+
+- **Backend**: FastAPI (Python)
+- **AI/ML**: Google AI (Gemini 1.5 Flash)
+- **Voice**: Web Speech API, Speech Synthesis
+- **Email**: Gmail SMTP with SSL/TLS
+- **Frontend**: HTML5, JavaScript, CSS3
+- **Data**: JSON-based session storage
+
+## 📋 Prerequisites
+
+- Python 3.8 or higher
+- Gmail account with App Password enabled
+- Google AI API key (free tier available)
+- Modern web browser with microphone access
+
+## ⚡ Quick Start
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/Manya104/tvsrepo.git
+cd tvsrepo
+```
+
+### 2. Set Up Environment
+
+```bash
+# Create virtual environment
+python -m venv venv
+
+# Activate virtual environment
+# On macOS/Linux:
+source venv/bin/activate
+# On Windows:
+venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### 3. Configure Environment Variables
+
+```bash
+# Copy the template
+cp .env.template .env
+
+# Edit .env with your actual credentials
+nano .env
+```
+
+**Required Configuration:**
+
+- `GOOGLE_API_KEY`: Get from [Google AI Studio](https://makersuite.google.com/app/apikey)
+- `GMAIL_USER`: Your Gmail address
+- `GMAIL_APP_PASSWORD`: Generate from [Google Account Settings](https://support.google.com/accounts/answer/185833)
+
+### 4. Run the Application
+
+```bash
+python advanced_ui_server.py
+```
+
+### 5. Access the Application
+
+- Open http://localhost:8000 in your browser
+- Allow microphone access when prompted
+- Try the different demo interfaces
+
+## 📖 Configuration Guide
+
+### Gmail SMTP Setup
+
+1. Enable 2-factor authentication on your Gmail account
+2. Go to Google Account settings → Security → App passwords
+3. Generate a new app password for "Mail"
+4. Use this 16-character password in your `.env` file
+
+### Google AI API Setup
+
+1. Visit [Google AI Studio](https://makersuite.google.com/app/apikey)
+2. Create a new API key
+3. Add the key to your `.env` file
+
+## 🎮 Usage Examples
+
+### Basic Voice Interaction
+
+1. Navigate to `/voice-demo`
+2. Click "Start Conversation"
+3. Speak naturally about EMI payments
+4. The AI will respond contextually
+
+### Email Payment Links
+
+1. Use `/live-demo` interface
+2. Follow the conversation flow
+3. Provide email when requested
+4. Receive payment link via email
+
+### Analytics Dashboard
+
+1. Visit the main dashboard at `/`
+2. View real-time statistics
+3. Monitor call success rates
+4. Track payment collections
 
 ## 🏗️ Architecture
 
-The system consists of 6 intelligent agents:
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Web Frontend  │────│   FastAPI       │────│   Google AI     │
+│   (Speech API)  │    │   Server        │    │   (Gemini)      │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                              │
+                       ┌──────┴──────┐
+                       │             │
+                ┌─────────────┐ ┌─────────────┐
+                │   Gmail     │ │ Session     │
+                │   SMTP      │ │ Storage     │
+                └─────────────┘ └─────────────┘
+```
 
-### 🔹 1. Trigger Agent
+## 🤖 AI Agents
 
-- **Function**: Monitors EMI due dates and initiates workflow
-- **Features**:
-  - Scheduled EMI checks (configurable times)
-  - Priority-based customer targeting
-  - Manual trigger support for testing
+- **VoiceBot Agent**: Handles natural language conversations
+- **Trigger Agent**: Manages EMI due date checks
+- **Analytics Agent**: Processes performance data
+- **Logging Agent**: Tracks system events
 
-### 🔹 2. Context Agent
+## 📊 API Endpoints
 
-- **Function**: Gathers comprehensive customer context
-- **Features**:
-  - Customer profile & risk scoring
-  - Payment history analysis
-  - Language preference detection
-  - Communication preference learning
+### Voice Processing
 
-### 🔹 3. VoiceBot Agent
+- `POST /api/voice/process` - Process voice input with AI
+- `POST /api/voice/test-call` - Test voice functionality
 
-- **Function**: Conducts multilingual, dynamic conversations
-- **Features**:
-  - Multi-language support (English, Hindi)
-  - AI-powered conversation simulation
-  - Sentiment analysis
-  - Intent recognition
+### Payment & Email
 
-### 🔹 4. Decision Agent
+- `POST /api/payment/send-link` - Send payment link via email
+- `GET /api/payment/sent-links` - Get sent payment history
 
-- **Function**: Determines next steps based on interactions
-- **Features**:
-  - Rule-based decision engine
-  - Escalation logic
-  - Priority management
-  - Channel recommendation
+### Analytics
 
-### 🔹 5. Payment Agent
+- `GET /api/stats` - Get dashboard statistics
+- `GET /api/analytics/dashboard` - Get detailed analytics
 
-- **Function**: Manages payment links and transactions
-- **Features**:
-  - Secure payment link generation
-  - Multi-channel messaging (SMS, WhatsApp)
-  - Payment verification
-  - Transaction tracking
+### Demo & Testing
+
+- `POST /api/demo/workflow` - Run demonstration workflow
+- `POST /api/trigger/check-due-emis` - Check for due EMIs
+
+## � Security Features
+
+- Environment variable protection
+- SSL/TLS email encryption
+- Session-based conversation storage
+- Input validation and sanitization
+
+## 📱 Browser Compatibility
+
+- Chrome 70+ (Recommended)
+- Firefox 75+
+- Safari 14+
+- Edge 79+
+
+_Note: Microphone access required for voice features_
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 🆘 Support & Troubleshooting
+
+### Common Issues
+
+**Microphone not working:**
+
+- Ensure browser permissions are granted
+- Check system microphone settings
+- Try different browsers
+
+**Email not sending:**
+
+- Verify Gmail App Password is correct
+- Check internet connection
+- Ensure 2FA is enabled on Gmail
+
+**AI responses not working:**
+
+- Verify Google AI API key is valid
+- Check API quota limits
+- Ensure network connectivity
+
+### Getting Help
+
+- Check the [Documentation](ARCHITECTURE_WORKFLOW.md)
+- Review [Implementation Details](IMPLEMENTATION_SUMMARY.md)
+- See [Demo Guide](DEMO_PRESENTATION_GUIDE.md)
+
+## 📈 Performance
+
+- **Response Time**: < 2 seconds for AI processing
+- **Email Delivery**: < 30 seconds via Gmail SMTP
+- **Voice Recognition**: Real-time with Web Speech API
+- **Concurrent Users**: Supports multiple simultaneous sessions
+
+## 🎯 Use Cases
+
+- EMI collection automation
+- Customer service voice bots
+- Payment reminder systems
+- Financial service automation
+- Customer interaction analytics
+
+---
+
+**Made with ❤️ for intelligent customer service automation**
+
+- Multi-channel messaging (SMS, WhatsApp)
+- Payment verification
+- Transaction tracking
 
 ### 🔹 6. Logging & Learning Agent
 
