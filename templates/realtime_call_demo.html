@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EMI VoiceBot - Real-Time Call Simulator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .call-interface {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        .customer-panel, .agent-panel {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+        }
+        .phone-display {
+            background: #000;
+            border-radius: 25px;
+            padding: 20px;
+            margin: 10px 0;
+            min-height: 400px;
+            position: relative;
+            border: 3px solid #333;
+        }
+        .call-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .btn-call {
+            background: #4CAF50;
+            color: white;
+        }
+        .btn-call:hover {
+            background: #45a049;
+            transform: scale(1.05);
+        }
+        .btn-hangup {
+            background: #f44336;
+            color: white;
+        }
+        .btn-hangup:hover {
+            background: #da190b;
+            transform: scale(1.05);
+        }
+        .status-display {
+            text-align: center;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .conversation {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            height: 300px;
+            overflow-y: auto;
+            margin: 10px 0;
+        }
+        .message {
+            margin: 10px 0;
+            padding: 8px 12px;
+            border-radius: 15px;
+            max-width: 80%;
+        }
+        .customer-msg {
+            background: #2196F3;
+            margin-left: auto;
+            text-align: right;
+        }
+        .agent-msg {
+            background: #4CAF50;
+            margin-right: auto;
+        }
+        .typing-indicator {
+            display: none;
+            font-style: italic;
+            color: #ccc;
+        }
+        .audio-controls {
+            text-align: center;
+            margin: 15px 0;
+        }
+        .audio-btn {
+            background: #9C27B0;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            margin: 0 5px;
+            cursor: pointer;
+        }
+        .metrics-panel {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .metric-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        .calling {
+            animation: pulse 1s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎭 EMI VoiceBot - Real-Time Call Simulator</h1>
+            <p>Experience live AI-powered customer interactions with realistic call simulation</p>
+        </div>
+
+        <div class="call-interface">
+            <!-- Customer Side -->
+            <div class="customer-panel">
+                <h3>📱 Customer: Manya Johri</h3>
+                <div class="phone-display">
+                    <div class="status-display" id="customerStatus">Ready to Call</div>
+                    <div class="conversation" id="customerConversation"></div>
+                    <div class="audio-controls">
+                        <button class="audio-btn" onclick="playCustomerAudio()">🔊 Play Audio</button>
+                        <button class="audio-btn" onclick="toggleMic()">🎤 Mic</button>
+                    </div>
+                </div>
+                <div class="call-controls">
+                    <button class="btn btn-call" onclick="startCall()">📞 Start Call</button>
+                    <button class="btn btn-hangup" onclick="endCall()">📵 End Call</button>
+                </div>
+            </div>
+
+            <!-- Agent Side -->
+            <div class="agent-panel">
+                <h3>🤖 AI VoiceBot Agent</h3>
+                <div class="phone-display">
+                    <div class="status-display" id="agentStatus">Waiting for Call</div>
+                    <div class="conversation" id="agentConversation"></div>
+                    <div class="audio-controls">
+                        <button class="audio-btn" onclick="playAgentAudio()">🔊 Play Response</button>
+                        <button class="audio-btn" onclick="toggleSpeaker()">📢 Speaker</button>
+                    </div>
+                </div>
+                <div class="call-controls">
+                    <button class="btn btn-call" onclick="simulateResponse()">🎯 Generate Response</button>
+                    <button class="btn btn-hangup" onclick="escalateCall()">👥 Escalate</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Real-time Metrics -->
+        <div class="metrics-panel">
+            <h3>📊 Real-Time Call Analytics</h3>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-value" id="callDuration">00:00</div>
+                    <div>Call Duration</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="responseTime">0ms</div>
+                    <div>AI Response Time</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="sentiment">Neutral</div>
+                    <div>Customer Sentiment</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="confidence">85%</div>
+                    <div>AI Confidence</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let callActive = false;
+        let callStartTime = null;
+        let callTimer = null;
+        let ws = null;
+        let messageCount = 0;
+
+        // Real-time conversation scenarios
+        const conversationScenarios = [
+            {
+                customer: "Hello, I received a call about my EMI payment?",
+                agent: "Hello Rahul! Yes, this is a reminder that your EMI of ₹15,000 is due on August 10th. Would you like to make the payment now?",
+                sentiment: "Neutral",
+                confidence: "92%"
+            },
+            {
+                customer: "I'm having some financial difficulties this month...",
+                agent: "I understand your situation, Rahul. Let me check what payment options we can offer you. We have a 7-day grace period available.",
+                sentiment: "Concerned",
+                confidence: "88%"
+            },
+            {
+                customer: "Can I get an extension or pay in installments?",
+                agent: "Absolutely! I can offer you a 15-day extension with a small fee, or split this into 2 payments. Which would work better for you?",
+                sentiment: "Hopeful",
+                confidence: "95%"
+            },
+            {
+                customer: "The extension sounds good. How much is the fee?",
+                agent: "The extension fee is just ₹150. I can process this right now and send you a confirmation. Shall I go ahead?",
+                sentiment: "Positive",
+                confidence: "97%"
+            },
+            {
+                customer: "Yes, please process the extension. Thank you!",
+                agent: "Perfect! I've processed your 15-day extension. Your new due date is August 25th. You'll receive an SMS confirmation shortly. Is there anything else I can help you with?",
+                sentiment: "Satisfied",
+                confidence: "99%"
+            }
+        ];
+
+        function startCall() {
+            if (callActive) return;
+            
+            callActive = true;
+            callStartTime = Date.now();
+            messageCount = 0;
+            
+            document.getElementById('customerStatus').textContent = 'Calling...';
+            document.getElementById('agentStatus').textContent = 'Incoming Call...';
+            
+            // Clear conversations
+            document.getElementById('customerConversation').innerHTML = '';
+            document.getElementById('agentConversation').innerHTML = '';
+            
+            // Start call timer
+            callTimer = setInterval(updateCallTimer, 1000);
+            
+            // Simulate call connection
+            setTimeout(() => {
+                if (callActive) {
+                    document.getElementById('customerStatus').textContent = 'Connected';
+                    document.getElementById('agentStatus').textContent = 'Call Active';
+                    
+                    // Start conversation simulation
+                    simulateConversation();
+                }
+            }, 2000);
+            
+            // Connect to WebSocket for real-time updates
+            connectWebSocket();
+        }
+
+        function endCall() {
+            if (!callActive) return;
+            
+            callActive = false;
+            clearInterval(callTimer);
+            
+            document.getElementById('customerStatus').textContent = 'Call Ended';
+            document.getElementById('agentStatus').textContent = 'Available';
+            
+            if (ws) {
+                ws.close();
+            }
+        }
+
+        function simulateConversation() {
+            if (!callActive || messageCount >= conversationScenarios.length) {
+                return;
+            }
+            
+            const scenario = conversationScenarios[messageCount];
+            
+            // Customer message first
+            setTimeout(() => {
+                addMessage('customer', scenario.customer);
+                updateMetrics(scenario);
+            }, 1000);
+            
+            // Agent response with realistic delay
+            setTimeout(() => {
+                showTypingIndicator('agent');
+                setTimeout(() => {
+                    hideTypingIndicator('agent');
+                    addMessage('agent', scenario.agent);
+                    updateMetrics(scenario);
+                    messageCount++;
+                    
+                    // Continue conversation
+                    if (callActive && messageCount < conversationScenarios.length) {
+                        setTimeout(simulateConversation, 3000);
+                    }
+                }, 2000 + Math.random() * 1000); // Realistic AI response time
+            }, 2000);
+        }
+
+        function addMessage(sender, text) {
+            const conversation = document.getElementById(sender + 'Conversation');
+            const message = document.createElement('div');
+            message.className = `message ${sender}-msg`;
+            message.textContent = text;
+            conversation.appendChild(message);
+            conversation.scrollTop = conversation.scrollHeight;
+            
+            // Also add to the other side for full conversation view
+            const otherSide = sender === 'customer' ? 'agent' : 'customer';
+            const otherConversation = document.getElementById(otherSide + 'Conversation');
+            const otherMessage = document.createElement('div');
+            otherMessage.className = `message ${sender}-msg`;
+            otherMessage.textContent = text;
+            otherConversation.appendChild(otherMessage);
+            otherConversation.scrollTop = otherConversation.scrollHeight;
+        }
+
+        function showTypingIndicator(side) {
+            const conversation = document.getElementById(side + 'Conversation');
+            const indicator = document.createElement('div');
+            indicator.className = 'typing-indicator';
+            indicator.id = 'typing-' + side;
+            indicator.textContent = 'AI is thinking...';
+            indicator.style.display = 'block';
+            conversation.appendChild(indicator);
+            conversation.scrollTop = conversation.scrollHeight;
+        }
+
+        function hideTypingIndicator(side) {
+            const indicator = document.getElementById('typing-' + side);
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        function updateCallTimer() {
+            if (!callStartTime) return;
+            
+            const elapsed = Math.floor((Date.now() - callStartTime) / 1000);
+            const minutes = Math.floor(elapsed / 60);
+            const seconds = elapsed % 60;
+            
+            document.getElementById('callDuration').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function updateMetrics(scenario) {
+            document.getElementById('responseTime').textContent = (500 + Math.random() * 1000).toFixed(0) + 'ms';
+            document.getElementById('sentiment').textContent = scenario.sentiment;
+            document.getElementById('confidence').textContent = scenario.confidence;
+        }
+
+        function connectWebSocket() {
+            try {
+                ws = new WebSocket('ws://localhost:8002/ws');
+                
+                ws.onopen = function() {
+                    console.log('Connected to live demo WebSocket');
+                };
+                
+                ws.onmessage = function(event) {
+                    const data = JSON.parse(event.data);
+                    console.log('Real-time update:', data);
+                    // Handle real-time updates from the backend
+                };
+                
+                ws.onerror = function(error) {
+                    console.log('WebSocket error:', error);
+                };
+            } catch (error) {
+                console.log('WebSocket connection failed:', error);
+            }
+        }
+
+        // Audio simulation functions
+        function playCustomerAudio() {
+            // Simulate audio feedback
+            alert('🔊 Playing customer audio (simulated)');
+        }
+
+        function playAgentAudio() {
+            // This could integrate with the actual TTS system
+            fetch('http://localhost:8002/api/demo/status')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.audio_available) {
+                        alert('🔊 Playing AI-generated voice response (TTS enabled)');
+                    } else {
+                        alert('🔊 Audio simulation (install gTTS for real audio)');
+                    }
+                })
+                .catch(() => {
+                    alert('🔊 Audio simulation mode');
+                });
+        }
+
+        function toggleMic() {
+            alert('🎤 Microphone toggled (speech recognition simulation)');
+        }
+
+        function toggleSpeaker() {
+            alert('📢 Speaker mode toggled');
+        }
+
+        function simulateResponse() {
+            if (callActive) {
+                alert('🤖 Generating AI response...');
+                // This could trigger actual AI processing
+            }
+        }
+
+        function escalateCall() {
+            if (callActive) {
+                alert('👥 Call escalated to human agent');
+                endCall();
+            }
+        }
+
+        // Auto-start demo on page load
+        window.onload = function() {
+            setTimeout(() => {
+                if (confirm('🎭 Start live call demo automatically?')) {
+                    startCall();
+                }
+            }, 1000);
+        };
+    </script>
+</body>
+</html>

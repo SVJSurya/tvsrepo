@@ -1,0 +1,15 @@
+# Optional dependencies for live call demo functionality
+# Install these for full audio and telephony features
+
+# Text-to-speech and audio
+gtts>=2.3.0
+pygame>=2.1.0
+
+# Speech recognition
+SpeechRecognition>=3.10.0
+
+# Twilio for real phone calls (requires account setup)
+twilio>=8.0.0
+
+# Note: These are optional dependencies for enhanced features
+# The system will work without them but with limited functionality

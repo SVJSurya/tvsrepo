@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+           <div class="voice-controls">
+            <button class="voice-btn" id="startBtn" onclick="startConversation()">🎤 Start Conversation</button>
+            <button class="voice-btn" id="pauseBtn" onclick="pauseConversation()" disabled>⏸️ Pause Conversation</button>
+            <button class="voice-btn" id="endBtn" onclick="endConversation()" disabled>🛑 End Conversation</button>
+            <button class="voice-btn" onclick="simulateAICall()">🤖 Simulate AI Call</button>
+        </div>a name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice-Enabled Live Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #1a1a2e;
+            color: white;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #16213e;
+            border-radius: 10px;
+            padding: 30px;
+        }
+        .voice-controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .voice-btn {
+            background: #e94560;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            margin: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        .voice-btn:hover {
+            background: #d63447;
+            transform: scale(1.05);
+        }
+        .voice-btn.listening {
+            background: #27ae60;
+            animation: pulse 1s infinite;
+        }
+        .transcript {
+            background: #0f3460;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            min-height: 100px;
+        }
+        .ai-response {
+            background: #0d7377;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            min-height: 100px;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 Voice-Enabled Live Call Demo</h1>
+        <p>Use your browser's microphone and speech synthesis for real-time interaction!</p>
+        
+        <div class="voice-controls">
+            <button class="voice-btn" id="startBtn" onclick="startListening()">🎤 Start Speaking</button>
+            <button class="voice-btn" id="stopBtn" onclick="stopListening()" disabled>⏹️ Stop</button>
+            <button class="voice-btn" onclick="simulateAICall()">🤖 Simulate AI Call</button>
+        </div>
+        
+        <div class="transcript">
+            <h3>📝 What you said:</h3>
+            <div id="transcript"></div>
+        </div>
+        
+        <div class="ai-response">
+            <h3>🤖 AI Agent Response:</h3>
+            <div id="aiResponse"></div>
+            <button class="voice-btn" onclick="speakResponse()">🔊 Play Response</button>
+        </div>
+    </div>
+
+    <script>
+        let recognition;
+        let isListening = false;
+        let isConversationMode = false;
+        let silenceTimer;
+        let isProcessingAI = false;
+        
+        // Generate unique session ID for this conversation
+        const sessionId = 'voice_session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        
+        // Initialize speech recognition
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+        } else if ('SpeechRecognition' in window) {
+            recognition = new SpeechRecognition();
+        }
+        
+        if (recognition) {
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+            
+            recognition.onresult = function(event) {
+                let transcript = '';
+                let interimTranscript = '';
+                
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    if (event.results[i].isFinal) {
+                        transcript += event.results[i][0].transcript;
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
+                }
+                
+                // Show live transcript
+                document.getElementById('transcript').textContent = transcript + interimTranscript;
+                
+                // Process final results automatically in conversation mode
+                if (transcript && event.results[event.results.length - 1].isFinal && isConversationMode && !isProcessingAI) {
+                    clearTimeout(silenceTimer);
+                    
+                    // Brief pause before processing to allow for additional speech
+                    silenceTimer = setTimeout(() => {
+                        if (transcript.trim() && !isProcessingAI) {
+                            processWithAI(transcript.trim());
+                        }
+                    }, 1000); // 1 second pause after final speech
+                }
+            };
+            
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error:', event.error);
+                if (event.error === 'no-speech' && isConversationMode) {
+                    // Automatically restart in conversation mode
+                    setTimeout(restartListening, 1000);
+                } else {
+                    stopListening();
+                }
+            };
+            
+            recognition.onend = function() {
+                if (isConversationMode && !isProcessingAI) {
+                    // Automatically restart listening in conversation mode
+                    setTimeout(restartListening, 500);
+                }
+            };
+        }
+        
+        function startConversation() {
+            isConversationMode = true;
+            startListening();
+            
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('pauseBtn').disabled = false;
+            document.getElementById('endBtn').disabled = false;
+            document.getElementById('transcript').textContent = 'Conversation started - you can speak naturally...';
+            document.getElementById('aiResponse').textContent = 'Hello! I\'m ready to help you with your EMI. What would you like to know?';
+            
+            // Welcome message
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance('Hello! I\'m ready to help you with your EMI. What would you like to know?');
+                utterance.rate = 0.9;
+                speechSynthesis.speak(utterance);
+            }
+        }
+        
+        function pauseConversation() {
+            isConversationMode = false;
+            stopListening();
+            
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('pauseBtn').disabled = true;
+            document.getElementById('transcript').textContent = 'Conversation paused - click "Start Conversation" to resume';
+        }
+        
+        function endConversation() {
+            isConversationMode = false;
+            stopListening();
+            
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('pauseBtn').disabled = true;
+            document.getElementById('endBtn').disabled = true;
+            document.getElementById('transcript').textContent = 'Conversation ended';
+            document.getElementById('aiResponse').textContent = 'Thank you for using our EMI service. Have a great day!';
+        }
+        
+        function startListening() {
+            if (recognition && !isListening) {
+                try {
+                    recognition.start();
+                    isListening = true;
+                } catch (e) {
+                    console.log('Recognition already started');
+                }
+            }
+        }
+        
+        function stopListening() {
+            if (recognition && isListening) {
+                recognition.stop();
+                isListening = false;
+            }
+        }
+        
+        function restartListening() {
+            if (isConversationMode && !isProcessingAI) {
+                stopListening();
+                setTimeout(() => {
+                    startListening();
+                }, 100);
+            }
+        }
+        
+        async function processWithAI(userInput) {
+            isProcessingAI = true;
+            document.getElementById('aiResponse').textContent = '🤖 AI is processing your request...';
+            
+            // Stop listening while processing
+            if (isConversationMode) {
+                stopListening();
+            }
+            
+            try {
+                // Call the actual Google AI backend
+                const response = await fetch('/api/voice/process', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_input: userInput,
+                        session_id: sessionId
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    // Extract the AI response - it's already parsed by the backend
+                    let aiText = '';
+                    if (data.ai_response && data.ai_response.response) {
+                        // The response is already clean text from the backend
+                        aiText = data.ai_response.response;
+                    } else {
+                        aiText = 'I can help you with your EMI payment. How can I assist you today?';
+                    }
+                    
+                    document.getElementById('aiResponse').textContent = aiText;
+                    
+                    // Auto-speak the response and then restart listening
+                    if ('speechSynthesis' in window) {
+                        const utterance = new SpeechSynthesisUtterance(aiText);
+                        utterance.rate = 0.9;
+                        utterance.pitch = 1;
+                        utterance.volume = 0.8;
+                        
+                        utterance.onend = function() {
+                            // Restart listening after AI finishes speaking
+                            if (isConversationMode) {
+                                isProcessingAI = false;
+                                setTimeout(() => {
+                                    document.getElementById('transcript').textContent = 'Listening for your response...';
+                                    restartListening();
+                                }, 1000); // 1 second pause after AI speaks
+                            }
+                        };
+                        
+                        speechSynthesis.speak(utterance);
+                    } else {
+                        // If no speech synthesis, restart listening immediately
+                        if (isConversationMode) {
+                            isProcessingAI = false;
+                            setTimeout(() => {
+                                document.getElementById('transcript').textContent = 'Listening for your response...';
+                                restartListening();
+                            }, 2000); // 2 second pause to read response
+                        }
+                    }
+                } else {
+                    // Handle error case
+                    const fallbackText = data.fallback_response || 'I apologize, but I\'m having technical difficulties. Please try again.';
+                    document.getElementById('aiResponse').textContent = fallbackText;
+                    
+                    // Restart listening after error
+                    if (isConversationMode) {
+                        isProcessingAI = false;
+                        setTimeout(restartListening, 2000);
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Error calling AI API:', error);
+                const fallbackText = 'I\'m sorry, I\'m having trouble connecting right now. Please try again in a moment.';
+                document.getElementById('aiResponse').textContent = fallbackText;
+                
+                // Restart listening after error
+                if (isConversationMode) {
+                    isProcessingAI = false;
+                    setTimeout(restartListening, 2000);
+                }
+            }
+        }
+        
+        function speakResponse() {
+            const text = document.getElementById('aiResponse').textContent;
+            if ('speechSynthesis' in window && text) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 0.9;
+                utterance.pitch = 1;
+                utterance.volume = 0.8;
+                speechSynthesis.speak(utterance);
+            }
+        }
+        
+        function simulateAICall() {
+            const scenarios = [
+                "Hello, I received a call about my EMI payment",
+                "I'm having financial difficulties this month",
+                "Can I get an extension on my payment?",
+                "How much is the extension fee?",
+                "Please process the extension for me"
+            ];
+            
+            const randomScenario = scenarios[Math.floor(Math.random() * scenarios.length)];
+            document.getElementById('transcript').textContent = randomScenario;
+            processWithAI(randomScenario);
+        }
+        
+        // Check for browser support
+        window.onload = function() {
+            if (!recognition) {
+                alert('Speech recognition not supported in this browser. Try Chrome or Edge for full voice features.');
+            }
+            
+            if (!('speechSynthesis' in window)) {
+                alert('Speech synthesis not supported in this browser.');
+            }
+        };
+    </script>
+</body>
+</html>

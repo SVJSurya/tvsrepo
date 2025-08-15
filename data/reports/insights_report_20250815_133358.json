@@ -1,0 +1,50 @@
+{
+  "report_date": "2025-08-15T13:33:58.794937",
+  "analysis_period_days": 30,
+  "interaction_analysis": {
+    "error": "(psycopg2.OperationalError) connection to server at \"localhost\" (::1), port 5432 failed: Connection refused\n\tIs the server running on that host and accepting TCP/IP connections?\nconnection to server at \"localhost\" (127.0.0.1), port 5432 failed: Connection refused\n\tIs the server running on that host and accepting TCP/IP connections?\n\n(Background on this error at: https://sqlalche.me/e/20/e3q8)"
+  },
+  "payment_analysis": {
+    "total_collections": 1500000,
+    "collection_rate": 0.78,
+    "average_time_to_payment": "2.3 days",
+    "preferred_payment_methods": {
+      "upi": 45,
+      "netbanking": 30,
+      "cards": 25
+    }
+  },
+  "segmentation_analysis": {
+    "high_risk_customers": {
+      "count": 25,
+      "collection_rate": 0.45
+    },
+    "medium_risk_customers": {
+      "count": 150,
+      "collection_rate": 0.72
+    },
+    "low_risk_customers": {
+      "count": 200,
+      "collection_rate": 0.95
+    },
+    "vip_customers": {
+      "count": 30,
+      "collection_rate": 0.98
+    }
+  },
+  "system_performance": {
+    "total_calls_made": 500,
+    "successful_connections": 450,
+    "average_call_duration": "3.2 minutes",
+    "system_uptime": "99.8%",
+    "error_rate": "0.5%"
+  },
+  "recommendations": [
+    "Consider improving conversation scripts to enhance customer sentiment",
+    "Implement more flexible payment options to improve collection rate",
+    "Develop specialized strategies for high-risk customers",
+    "Schedule calls during peak success hours (based on historical data)",
+    "Implement A/B testing for different conversation approaches",
+    "Consider multilingual support expansion based on customer demographics"
+  ]
+}
