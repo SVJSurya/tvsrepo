@@ -281,19 +281,1805 @@ async def dashboard():
 @app.get("/live-demo", response_class=HTMLResponse)
 async def live_demo():
     """Serve the live call demo interface"""
-    return FileResponse("templates/live_call_demo.html")
+    html_content = '''<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EMI VoiceBot - Live Call Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .demo-header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .demo-header h1 {
+            color: #2a5298;
+            margin-bottom: 10px;
+        }
+
+        .demo-setup {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .phone-setup {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .phone-setup input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+        }
+
+        .demo-customers {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .customer-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .customer-card.calling {
+            border-left: 5px solid #ffc107;
+            background: linear-gradient(45deg, #fff9c4, #ffffff);
+        }
+
+        .customer-card.connected {
+            border-left: 5px solid #28a745;
+            background: linear-gradient(45deg, #d4edda, #ffffff);
+        }
+
+        .customer-info h3 {
+            color: #2a5298;
+            margin-bottom: 10px;
+        }
+
+        .customer-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .customer-details span {
+            color: #666;
+        }
+
+        .call-status {
+            margin-top: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .call-step {
+            padding: 5px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .call-step:last-child {
+            border-bottom: none;
+        }
+
+        .call-step.current {
+            background: #e3f2fd;
+            color: #1976d2;
+            font-weight: bold;
+            padding: 8px;
+            border-radius: 4px;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        .audio-controls {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .audio-visualizer {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            height: 50px;
+            margin: 20px 0;
+        }
+
+        .audio-bar {
+            width: 4px;
+            background: #667eea;
+            border-radius: 2px;
+            transition: height 0.1s ease;
+        }
+
+        .audio-message {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #667eea;
+        }
+
+        .user-input-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 2px solid #28a745;
+        }
+
+        .input-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .input-btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .input-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(40, 167, 69, 0.3);
+        }
+
+        .input-btn:active {
+            transform: scale(0.95);
+        }
+
+        .input-btn.option-1 {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+
+        .input-btn.option-2 {
+            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+        }
+
+        .response-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #28a745;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .email-input-section {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #007bff;
+        }
+
+        .email-input-section input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #007bff;
+            border-radius: 8px;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .status-indicator {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #6c757d;
+        }
+
+        .status-indicator.calling {
+            background: #ffc107;
+            animation: pulse 1s infinite;
+        }
+
+        .status-indicator.connected {
+            background: #28a745;
+        }
+
+        .status-indicator.completed {
+            background: #17a2b8;
+        }
+
+        .demo-controls {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .close {
+            position: absolute;
+            right: 20px;
+            top: 15px;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .close:hover {
+            color: #333;
+        }
+
+        @media (max-width: 768px) {
+            .phone-setup {
+                flex-direction: column;
+            }
+            
+            .demo-customers {
+                grid-template-columns: 1fr;
+            }
+            
+            .control-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <!-- Header -->
+        <div class="demo-header">
+            <h1>🎭 Live Call Demo System</h1>
+            <p>Experience real-time AI-powered EMI collection calls with audio feedback</p>
+        </div>
+
+        <!-- Setup Section -->
+        <div class="demo-setup">
+            <h3>📞 Interactive Demo Setup</h3>
+            <div class="alert alert-info">
+                <strong>Interactive Demo Mode:</strong> This enhanced demo includes real customer interaction simulation!<br>
+                • Play AI voice messages with text-to-speech<br>
+                • Respond to prompts by clicking buttons or pressing keyboard keys (1 or 2)<br>
+                • Send actual payment links to email addresses via Gmail SMTP<br>
+                • Experience the complete customer journey from call to payment
+            </div>
+            
+            <div class="phone-setup">
+                <input type="tel" id="phoneNumber" placeholder="+91XXXXXXXXXX" value="+919876543210">
+                <button class="btn" onclick="setupPhone()">Setup Demo Phone</button>
+            </div>
+            
+            <div id="setupStatus"></div>
+        </div>
+
+        <!-- Audio Controls -->
+        <div class="audio-controls">
+            <h3>🔊 Audio Demo Controls</h3>
+            <div class="control-group">
+                <button class="btn btn-success" onclick="playDemoMessage('english')">
+                    🗣️ Play English Message
+                </button>
+                <button class="btn btn-success" onclick="playDemoMessage('hindi')">
+                    🗣️ Play Hindi Message
+                </button>
+                <button class="btn btn-danger" onclick="stopAudio()">
+                    ⏹️ Stop Audio
+                </button>
+            </div>
+            
+            <div class="audio-visualizer" id="audioVisualizer">
+                <!-- Audio bars will be generated here -->
+            </div>
+            
+            <div class="audio-message" id="currentMessage" style="display: none;">
+                <strong>Currently Playing:</strong> <span id="messageText"></span>
+            </div>
+
+            <!-- Interactive User Input Panel -->
+            <div class="user-input-panel" id="userInputPanel" style="display: none;">
+                <h4>🎯 Customer Response Required</h4>
+                <p><strong>AI Voice:</strong> "Would you like to make the payment now? Press 1 for Yes, 2 for callback."</p>
+                
+                <div class="input-options">
+                    <button class="input-btn option-1" onclick="handleUserInput(1)">
+                        <div>Press 1</div>
+                        <small>Yes, I'll pay now</small>
+                    </button>
+                    <button class="input-btn option-2" onclick="handleUserInput(2)">
+                        <div>Press 2</div>
+                        <small>Request callback</small>
+                    </button>
+                </div>
+
+                <div id="userResponseMessage" style="display: none;"></div>
+                
+                <div class="email-input-section" id="emailInputSection" style="display: none;">
+                    <p><strong>📧 Enter your email to receive the payment link:</strong></p>
+                    <input type="email" id="customerEmail" placeholder="Enter your email address" value="customer@example.com">
+                    <button class="btn btn-success" onclick="sendPaymentLink()">
+                        📤 Send Payment Link
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Demo Customers -->
+        <div class="demo-customers" id="customerCards">
+            <!-- Customer cards will be populated here -->
+        </div>
+
+        <!-- Demo Controls -->
+        <div class="demo-controls">
+            <h3>🎮 Demo Controls</h3>
+            <div class="control-group">
+                <button class="btn" onclick="startSequentialDemo()">
+                    🚀 Start Sequential Demo
+                </button>
+                <button class="btn" onclick="resetDemo()">
+                    🔄 Reset Demo
+                </button>
+                <a href="/" class="btn" style="background: #6c757d;">
+                    ← Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audio Modal -->
+    <div id="audioModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAudioModal()">&times;</span>
+            <h2>🎵 Audio Demo</h2>
+            <p>Playing AI-generated voice message...</p>
+            <audio id="demoAudio" controls style="width: 100%; margin: 20px 0;">
+                Your browser does not support the audio element.
+            </audio>
+        </div>
+    </div>
+
+    <script>
+        // Demo data
+        const demoCustomers = [
+            {
+                id: "CUST_001",
+                name: "Manya Johri",
+                phone: "+919876543210",
+                emi_amount: 15000,
+                due_date: "2025-08-10",
+                loan_account: "LA_67890",
+                risk_score: "Medium",
+                preferred_language: "English"
+            },
+            {
+                id: "CUST_002",
+                name: "Demo Customer",
+                phone: "+919876543210",
+                emi_amount: 8500,
+                due_date: "2025-08-12",
+                loan_account: "LA_67891",
+                risk_score: "High",
+                preferred_language: "Hindi"
+            }
+        ];
+
+        // Demo messages
+        const demoMessages = {
+            english: "Hello, this is an automated call from your loan provider. Your EMI payment of rupees 15,000 was due on August 10th. Please make the payment immediately to avoid penalties. Would you like to make the payment now? Press 1 for Yes, 2 for callback.",
+            hindi: "नमस्ते, यह आपके लोन प्रदाता की ओर से एक स्वचालित कॉल है। आपकी ईएमआई 15,000 रुपये की 10 अगस्त को देय थी। कृपया जुर्माने से बचने के लिए तुरंत भुगतान करें। क्या आप अभी भुगतान करना चाहेंगे?"
+        };
+
+        // Call tracking
+        let activeCalls = {};
+        let audioContext = null;
+        let currentAudio = null;
+        let currentCallContext = null; // Track current call for user input
+
+        // Initialize demo
+        document.addEventListener('DOMContentLoaded', function() {
+            renderCustomerCards();
+            createAudioVisualizer();
+            
+            // Add keyboard event listener for user input
+            document.addEventListener('keydown', function(event) {
+                if (event.key === '1') {
+                    handleUserInput(1);
+                } else if (event.key === '2') {
+                    handleUserInput(2);
+                }
+            });
+        });
+
+        function setupPhone() {
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            if (!phoneNumber) {
+                alert('Please enter a phone number');
+                return;
+            }
+
+            // Update demo customers with the phone number
+            demoCustomers.forEach(customer => {
+                customer.phone = phoneNumber;
+            });
+
+            document.getElementById('setupStatus').innerHTML = '<div class="alert alert-success">✅ Demo phone number set to: ' + phoneNumber + '<br>Ready to start demo calls!</div>';
+
+            renderCustomerCards();
+        }
+
+        function renderCustomerCards() {
+            const container = document.getElementById('customerCards');
+            container.innerHTML = '';
+
+            demoCustomers.forEach(customer => {
+                const card = document.createElement('div');
+                card.className = 'customer-card';
+                card.id = 'customer-' + customer.id;
+                
+                card.innerHTML = '<div class="status-indicator" id="status-' + customer.id + '"></div><div class="customer-info"><h3>' + customer.name + '</h3><div class="customer-details"><span><strong>Phone:</strong> ' + customer.phone + '</span><span><strong>EMI:</strong> ₹' + customer.emi_amount + '</span><span><strong>Due Date:</strong> ' + customer.due_date + '</span><span><strong>Risk:</strong> ' + customer.risk_score + '</span><span><strong>Language:</strong> ' + customer.preferred_language + '</span><span><strong>Account:</strong> ' + customer.loan_account + '</span></div><button class="btn" onclick="startDemoCall(\'' + customer.id + '\')">📞 Start Demo Call</button><div class="call-status" id="call-status-' + customer.id + '" style="display: none;"><div><strong>Call Progress:</strong></div><div id="call-steps-' + customer.id + '"></div></div></div>';
+                
+                container.appendChild(card);
+            });
+        }
+
+        async function startDemoCall(customerId) {
+            const customer = demoCustomers.find(c => c.id === customerId);
+            if (!customer) return;
+
+            const callId = 'call_' + Date.now();
+            activeCalls[callId] = {
+                customerId,
+                customer,
+                steps: [],
+                status: 'initiating'
+            };
+
+            // Show call status
+            document.getElementById('call-status-' + customerId).style.display = 'block';
+            updateCustomerStatus(customerId, 'calling');
+
+            // Demo call sequence
+            await simulateDemoCall(callId, customer);
+        }
+
+        async function simulateDemoCall(callId, customer) {
+            const steps = [
+                { text: "📞 Dialing customer number...", delay: 2000 },
+                { text: "📶 Connecting to network...", delay: 1500 },
+                { text: "✅ Call connected successfully", delay: 1000 },
+                { text: "🤖 Playing AI-generated voice message...", delay: 2000, action: 'playAudio' },
+                { text: "👂 Waiting for customer response...", delay: 1000, action: 'waitForInput' },
+                // Dynamic steps will be added based on user input
+            ];
+
+            const customerId = customer.id;
+            const stepsContainer = document.getElementById('call-steps-' + customerId);
+            currentCallContext = { callId, customer, customerId, stepsContainer };
+
+            for (let i = 0; i < steps.length; i++) {
+                const step = steps[i];
+                
+                // Add step to UI
+                const stepDiv = document.createElement('div');
+                stepDiv.className = 'call-step current';
+                stepDiv.textContent = (i + 1) + '. ' + step.text;
+                stepsContainer.appendChild(stepDiv);
+
+                // Update status
+                if (step.action === 'playAudio') {
+                    updateCustomerStatus(customerId, 'connected');
+                    playDemoMessage(customer.preferred_language.toLowerCase());
+                } else if (step.action === 'waitForInput') {
+                    // Show user input panel
+                    document.getElementById('userInputPanel').style.display = 'block';
+                    document.getElementById('userInputPanel').scrollIntoView({ behavior: 'smooth' });
+                    
+                    // Wait for user input - the flow will continue from handleUserInput()
+                    return; // Exit the function here, will be resumed by user input
+                }
+
+                // Remove current class from previous step
+                if (i > 0) {
+                    stepsContainer.children[i - 1].classList.remove('current');
+                }
+
+                await new Promise(resolve => setTimeout(resolve, step.delay));
+            }
+        }
+
+        function updateCustomerStatus(customerId, status) {
+            const statusIndicator = document.getElementById('status-' + customerId);
+            const customerCard = document.getElementById('customer-' + customerId);
+            
+            statusIndicator.className = 'status-indicator ' + status;
+            customerCard.className = 'customer-card ' + status;
+        }
+
+        function playDemoMessage(language) {
+            const message = demoMessages[language] || demoMessages.english;
+            
+            // Show current message
+            document.getElementById('currentMessage').style.display = 'block';
+            document.getElementById('messageText').textContent = message;
+
+            // Use Web Speech API for text-to-speech
+            if ('speechSynthesis' in window) {
+                // Stop any current speech
+                speechSynthesis.cancel();
+                
+                const utterance = new SpeechSynthesisUtterance(message);
+                utterance.lang = language === 'hindi' ? 'hi-IN' : 'en-IN';
+                utterance.rate = 0.8;
+                utterance.pitch = 1;
+                
+                utterance.onstart = () => {
+                    startAudioVisualization();
+                };
+                
+                utterance.onend = () => {
+                    stopAudioVisualization();
+                    document.getElementById('currentMessage').style.display = 'none';
+                };
+                
+                speechSynthesis.speak(utterance);
+            } else {
+                // Fallback: show modal with text
+                document.getElementById('audioModal').style.display = 'block';
+            }
+        }
+
+        function stopAudio() {
+            if ('speechSynthesis' in window) {
+                speechSynthesis.cancel();
+            }
+            stopAudioVisualization();
+            document.getElementById('currentMessage').style.display = 'none';
+        }
+
+        async function handleUserInput(option) {
+            if (!currentCallContext) {
+                alert('No active call to respond to!');
+                return;
+            }
+
+            const { callId, customer, customerId, stepsContainer } = currentCallContext;
+            
+            // Hide user input panel
+            document.getElementById('userInputPanel').style.display = 'none';
+            
+            // Remove current class from last step
+            const currentSteps = stepsContainer.querySelectorAll('.call-step');
+            if (currentSteps.length > 0) {
+                currentSteps[currentSteps.length - 1].classList.remove('current');
+            }
+
+            if (option === 1) {
+                // Customer wants to pay now
+                await continueCallWithPayment(customer, customerId, stepsContainer);
+            } else if (option === 2) {
+                // Customer wants callback
+                await continueCallWithCallback(customer, customerId, stepsContainer);
+            }
+        }
+
+        async function continueCallWithPayment(customer, customerId, stepsContainer) {
+            const paymentSteps = [
+                { text: "📱 Customer pressed: 1 (Will pay now)", delay: 1000 },
+                { text: "🧠 AI analyzing payment request...", delay: 1500 },
+                { text: "✅ Payment intent confirmed", delay: 1000 },
+                { text: "📧 Requesting email for payment link...", delay: 2000, action: 'requestEmail' }
+            ];
+
+            await executeSteps(paymentSteps, stepsContainer);
+        }
+
+        async function continueCallWithCallback(customer, customerId, stepsContainer) {
+            const callbackSteps = [
+                { text: "📱 Customer pressed: 2 (Request callback)", delay: 1000 },
+                { text: "🧠 AI processing callback request...", delay: 1500 },
+                { text: "📅 Scheduling callback for preferred time", delay: 2000 },
+                { text: "✅ Callback scheduled successfully", delay: 1000 },
+                { text: "🔔 SMS notification sent", delay: 1000 },
+                { text: "📞 Call completed - callback scheduled", delay: 1000, action: 'complete' }
+            ];
+
+            await executeSteps(callbackSteps, stepsContainer);
+        }
+
+        async function executeSteps(steps, stepsContainer) {
+            for (let i = 0; i < steps.length; i++) {
+                const step = steps[i];
+                
+                // Add step to UI
+                const stepDiv = document.createElement('div');
+                stepDiv.className = 'call-step current';
+                stepDiv.textContent = (stepsContainer.children.length + 1) + '. ' + step.text;
+                stepsContainer.appendChild(stepDiv);
+
+                if (step.action === 'requestEmail') {
+                    // Show email input section
+                    const responseDiv = document.getElementById('userResponseMessage');
+                    responseDiv.innerHTML = '<div class="response-message"><strong>AI Response:</strong> "Great! I\'ll send you a secure payment link. Please provide your email address."</div>';
+                    responseDiv.style.display = 'block';
+                    
+                    document.getElementById('emailInputSection').style.display = 'block';
+                    document.getElementById('userInputPanel').style.display = 'block';
+                    document.getElementById('userInputPanel').scrollIntoView({ behavior: 'smooth' });
+                    
+                    return; // Wait for email input
+                } else if (step.action === 'complete') {
+                    updateCustomerStatus(currentCallContext.customerId, 'completed');
+                    currentCallContext = null; // Clear current call
+                }
+
+                // Remove current class from previous step
+                if (i > 0) {
+                    stepsContainer.children[stepsContainer.children.length - 2].classList.remove('current');
+                }
+
+                await new Promise(resolve => setTimeout(resolve, step.delay));
+            }
+
+            // Mark call as completed if not already done
+            if (currentCallContext) {
+                delete activeCalls[currentCallContext.callId];
+                currentCallContext = null;
+            }
+        }
+
+        async function sendPaymentLink() {
+            const email = document.getElementById('customerEmail').value;
+            if (!email || !email.includes('@')) {
+                alert('Please enter a valid email address');
+                return;
+            }
+
+            if (!currentCallContext) {
+                alert('No active call context');
+                return;
+            }
+
+            const { customer, customerId, stepsContainer } = currentCallContext;
+
+            try {
+                // Show sending status
+                const responseDiv = document.getElementById('userResponseMessage');
+                responseDiv.innerHTML = '<div class="response-message"><strong>📧 Sending payment link to:</strong> ' + email + '<div style="margin-top: 10px;"><div style="display: inline-block; width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite;"></div> Processing...</div></div>';
+
+                // Call the backend API to send payment link
+                const response = await fetch('/api/payment/send-link', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        session_id: 'live_demo_' + Date.now()
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('HTTP error! status: ' + response.status);
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Check if it's demo mode
+                    const isDemoMode = result.demo_mode || false;
+                    const modeText = isDemoMode ? ' (Demo Mode)' : '';
+                    
+                    // Update UI with success message
+                    responseDiv.innerHTML = '<div class="response-message"><strong>✅ Payment Link Generated Successfully!' + modeText + '</strong><br>📧 <strong>Email:</strong> ' + email + '<br>🆔 <strong>Payment ID:</strong> ' + result.payment_id + '<br>🔗 <strong>Payment Link:</strong> <a href="' + result.payment_link + '" target="_blank" style="color: #007bff;">' + result.payment_link + '</a><br>📝 <strong>Status:</strong> ' + result.message + (isDemoMode ? '<br><br><strong>🎭 Demo Mode:</strong> Payment link generated for demonstration. Check server console for details.' : '') + '</div>';
+
+                    // Continue with final steps
+                    const finalSteps = [
+                        { text: "📧 Payment link generated for " + email, delay: 1000 },
+                        { text: "✅ Demo call completed successfully", delay: 1000, action: 'complete' }
+                    ];
+
+                    // Hide input sections
+                    document.getElementById('emailInputSection').style.display = 'none';
+                    setTimeout(() => {
+                        document.getElementById('userInputPanel').style.display = 'none';
+                    }, 3000);
+
+                    await executeSteps(finalSteps, stepsContainer);
+
+                } else {
+                    // Show error message
+                    responseDiv.innerHTML = '<div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px; border-left: 4px solid #dc3545;"><strong>❌ Failed to send payment link</strong><br><strong>Error:</strong> ' + (result.message || result.error) + '<br><small>Please try again or contact support.</small></div>';
+                }
+
+            } catch (error) {
+                console.error('Error sending payment link:', error);
+                const responseDiv = document.getElementById('userResponseMessage');
+                responseDiv.innerHTML = '<div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px; border-left: 4px solid #dc3545;"><strong>❌ Network Error</strong><br><strong>Details:</strong> ' + error.message + '<br><small>Unable to send payment link. Please check your connection and try again.</small><br><small><strong>Debug:</strong> Check browser console for more details.</small></div>';
+            }
+        }
+
+        function createAudioVisualizer() {
+            const visualizer = document.getElementById('audioVisualizer');
+            visualizer.innerHTML = '';
+            
+            for (let i = 0; i < 20; i++) {
+                const bar = document.createElement('div');
+                bar.className = 'audio-bar';
+                bar.style.height = '5px';
+                visualizer.appendChild(bar);
+            }
+        }
+
+        function startAudioVisualization() {
+            const bars = document.querySelectorAll('.audio-bar');
+            
+            const animate = () => {
+                bars.forEach(bar => {
+                    const height = Math.random() * 40 + 5;
+                    bar.style.height = height + 'px';
+                });
+            };
+            
+            const interval = setInterval(animate, 100);
+            
+            // Store interval for cleanup
+            window.audioVisualizationInterval = interval;
+        }
+
+        function stopAudioVisualization() {
+            if (window.audioVisualizationInterval) {
+                clearInterval(window.audioVisualizationInterval);
+            }
+            
+            const bars = document.querySelectorAll('.audio-bar');
+            bars.forEach(bar => {
+                bar.style.height = '5px';
+            });
+        }
+
+        async function startSequentialDemo() {
+            for (const customer of demoCustomers) {
+                await startDemoCall(customer.id);
+                await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+        }
+
+        function resetDemo() {
+            // Reset all call statuses
+            activeCalls = {};
+            currentCallContext = null;
+            
+            demoCustomers.forEach(customer => {
+                const statusDiv = document.getElementById('call-status-' + customer.id);
+                if (statusDiv) {
+                    statusDiv.style.display = 'none';
+                    statusDiv.querySelector('#call-steps-' + customer.id).innerHTML = '';
+                }
+                
+                updateCustomerStatus(customer.id, '');
+            });
+            
+            // Hide user input panel
+            document.getElementById('userInputPanel').style.display = 'none';
+            document.getElementById('emailInputSection').style.display = 'none';
+            document.getElementById('userResponseMessage').style.display = 'none';
+            
+            stopAudio();
+            
+            alert('Demo reset complete! Ready for new interactive demo.');
+        }
+
+        function closeAudioModal() {
+            document.getElementById('audioModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('audioModal');
+            if (event.target === modal) {
+                closeAudioModal();
+            }
+        }
+    </script>
+</body>
+</html>'''
+    return HTMLResponse(content=html_content)
 
 
 @app.get("/realtime-demo", response_class=HTMLResponse)
 async def realtime_demo():
     """Serve the enhanced real-time call demo interface"""
-    return FileResponse("templates/realtime_call_demo.html")
+    html_content = '''<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EMI VoiceBot - Real-Time Call Simulator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .call-interface {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        .customer-panel, .agent-panel {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+        }
+        .phone-display {
+            background: #000;
+            border-radius: 25px;
+            padding: 20px;
+            margin: 10px 0;
+            min-height: 400px;
+            position: relative;
+            border: 3px solid #333;
+        }
+        .call-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .btn-call {
+            background: #4CAF50;
+            color: white;
+        }
+        .btn-call:hover {
+            background: #45a049;
+            transform: scale(1.05);
+        }
+        .btn-hangup {
+            background: #f44336;
+            color: white;
+        }
+        .btn-hangup:hover {
+            background: #da190b;
+            transform: scale(1.05);
+        }
+        .status-display {
+            text-align: center;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .conversation {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            height: 300px;
+            overflow-y: auto;
+            margin: 10px 0;
+        }
+        .message {
+            margin: 10px 0;
+            padding: 8px 12px;
+            border-radius: 15px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        
+        /* Customer panel styling */
+        #customerConversation .customer-msg {
+            background: #2196F3;
+            margin-left: auto;
+            text-align: right;
+            color: white;
+        }
+        
+        #customerConversation .agent-msg {
+            background: #4CAF50;
+            margin-right: auto;
+            text-align: left;
+            color: white;
+        }
+        
+        /* Agent panel styling */
+        #agentConversation .customer-msg {
+            background: #2196F3;
+            margin-right: auto;
+            text-align: left;
+            color: white;
+        }
+        
+        #agentConversation .agent-msg {
+            background: #4CAF50;
+            margin-left: auto;
+            text-align: right;
+            color: white;
+        }
+        .typing-indicator {
+            display: none;
+            font-style: italic;
+            color: #ccc;
+        }
+        .audio-controls {
+            text-align: center;
+            margin: 15px 0;
+        }
+        .audio-btn {
+            background: #9C27B0;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            margin: 0 5px;
+            cursor: pointer;
+        }
+        .metrics-panel {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .metric-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        .calling {
+            animation: pulse 1s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎭 EMI VoiceBot - Real-Time Call Simulator</h1>
+            <p>Experience live AI-powered customer interactions with realistic call simulation</p>
+        </div>
+
+        <div class="call-interface">
+            <!-- Customer Side -->
+            <div class="customer-panel">
+                <h3>📱 Customer: Manya Johri</h3>
+                <div class="phone-display">
+                    <div class="status-display" id="customerStatus">Ready to Call</div>
+                    <div class="conversation" id="customerConversation"></div>
+                    <div class="audio-controls">
+                        <button class="audio-btn" onclick="playCustomerAudio()">🔊 Play Audio</button>
+                        <button class="audio-btn" onclick="toggleMic()">🎤 Mic</button>
+                    </div>
+                </div>
+                <div class="call-controls">
+                    <button class="btn btn-call" onclick="startCall()">📞 Start Call</button>
+                    <button class="btn btn-hangup" onclick="endCall()">📵 End Call</button>
+                </div>
+            </div>
+
+            <!-- Agent Side -->
+            <div class="agent-panel">
+                <h3>🤖 AI VoiceBot Agent</h3>
+                <div class="phone-display">
+                    <div class="status-display" id="agentStatus">Waiting for Call</div>
+                    <div class="conversation" id="agentConversation"></div>
+                    <div class="audio-controls">
+                        <button class="audio-btn" onclick="playAgentAudio()">🔊 Play Response</button>
+                        <button class="audio-btn" onclick="toggleSpeaker()">📢 Speaker</button>
+                    </div>
+                </div>
+                <div class="call-controls">
+                    <button class="btn btn-call" onclick="simulateResponse()">🎯 Generate Response</button>
+                    <button class="btn btn-hangup" onclick="escalateCall()">👥 Escalate</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Real-time Metrics -->
+        <div class="metrics-panel">
+            <h3>📊 Real-Time Call Analytics</h3>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-value" id="callDuration">00:00</div>
+                    <div>Call Duration</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="responseTime">0ms</div>
+                    <div>AI Response Time</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="sentiment">Neutral</div>
+                    <div>Customer Sentiment</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="confidence">85%</div>
+                    <div>AI Confidence</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let callActive = false;
+        let callStartTime = null;
+        let callTimer = null;
+        let ws = null;
+        let messageCount = 0;
+
+        // Real-time conversation scenarios
+        const conversationScenarios = [
+            {
+                customer: "Hello, I received a call about my EMI payment?",
+                agent: "Hello Rahul! Yes, this is a reminder that your EMI of ₹15,000 is due on August 10th. Would you like to make the payment now?",
+                sentiment: "Neutral",
+                confidence: "92%"
+            },
+            {
+                customer: "I'm having some financial difficulties this month...",
+                agent: "I understand your situation, Rahul. Let me check what payment options we can offer you. We have a 7-day grace period available.",
+                sentiment: "Concerned",
+                confidence: "88%"
+            },
+            {
+                customer: "Can I get an extension or pay in installments?",
+                agent: "Absolutely! I can offer you a 15-day extension with a small fee, or split this into 2 payments. Which would work better for you?",
+                sentiment: "Hopeful",
+                confidence: "95%"
+            },
+            {
+                customer: "The extension sounds good. How much is the fee?",
+                agent: "The extension fee is just ₹150. I can process this right now and send you a confirmation. Shall I go ahead?",
+                sentiment: "Positive",
+                confidence: "97%"
+            },
+            {
+                customer: "Yes, please process the extension. Thank you!",
+                agent: "Perfect! I've processed your 15-day extension. Your new due date is August 25th. You'll receive an SMS confirmation shortly. Is there anything else I can help you with?",
+                sentiment: "Satisfied",
+                confidence: "99%"
+            }
+        ];
+
+        function startCall() {
+            if (callActive) return;
+            
+            callActive = true;
+            callStartTime = Date.now();
+            messageCount = 0;
+            
+            document.getElementById('customerStatus').textContent = 'Calling...';
+            document.getElementById('agentStatus').textContent = 'Incoming Call...';
+            
+            // Clear conversations
+            document.getElementById('customerConversation').innerHTML = '';
+            document.getElementById('agentConversation').innerHTML = '';
+            
+            // Start call timer
+            callTimer = setInterval(updateCallTimer, 1000);
+            
+            // Simulate call connection
+            setTimeout(() => {
+                if (callActive) {
+                    document.getElementById('customerStatus').textContent = 'Connected';
+                    document.getElementById('agentStatus').textContent = 'Call Active';
+                    
+                    // Start conversation simulation
+                    simulateConversation();
+                }
+            }, 2000);
+            
+            // Connect to WebSocket for real-time updates
+            connectWebSocket();
+        }
+
+        function endCall() {
+            if (!callActive) return;
+            
+            callActive = false;
+            clearInterval(callTimer);
+            
+            document.getElementById('customerStatus').textContent = 'Call Ended';
+            document.getElementById('agentStatus').textContent = 'Available';
+            
+            if (ws) {
+                ws.close();
+            }
+        }
+
+        function simulateConversation() {
+            if (!callActive || messageCount >= conversationScenarios.length) {
+                return;
+            }
+            
+            const scenario = conversationScenarios[messageCount];
+            
+            // Customer message first
+            setTimeout(() => {
+                addMessage('customer', scenario.customer);
+                updateMetrics(scenario);
+            }, 1000);
+            
+            // Agent response with realistic delay
+            setTimeout(() => {
+                showTypingIndicator('agent');
+                setTimeout(() => {
+                    hideTypingIndicator('agent');
+                    addMessage('agent', scenario.agent);
+                    updateMetrics(scenario);
+                    messageCount++;
+                    
+                    // Continue conversation
+                    if (callActive && messageCount < conversationScenarios.length) {
+                        setTimeout(simulateConversation, 3000);
+                    }
+                }, 2000 + Math.random() * 1000); // Realistic AI response time
+            }, 2000);
+        }
+
+        function addMessage(sender, text) {
+            if (sender === 'customer') {
+                // Customer message - show on customer side as outgoing, agent side as incoming
+                addMessageToSide('customerConversation', text, 'customer-msg');
+                addMessageToSide('agentConversation', text, 'customer-msg');
+            } else if (sender === 'agent') {
+                // Agent message - show on agent side as outgoing, customer side as incoming
+                addMessageToSide('agentConversation', text, 'agent-msg');
+                addMessageToSide('customerConversation', text, 'agent-msg');
+            }
+        }
+
+        function addMessageToSide(conversationId, text, messageClass) {
+            const conversation = document.getElementById(conversationId);
+            const message = document.createElement('div');
+            message.className = `message ${messageClass}`;
+            message.textContent = text;
+            conversation.appendChild(message);
+            conversation.scrollTop = conversation.scrollHeight;
+        }
+
+        function showTypingIndicator(side) {
+            const conversation = document.getElementById(side + 'Conversation');
+            const indicator = document.createElement('div');
+            indicator.className = 'typing-indicator';
+            indicator.id = 'typing-' + side;
+            indicator.textContent = 'AI is thinking...';
+            indicator.style.display = 'block';
+            conversation.appendChild(indicator);
+            conversation.scrollTop = conversation.scrollHeight;
+        }
+
+        function hideTypingIndicator(side) {
+            const indicator = document.getElementById('typing-' + side);
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        function updateCallTimer() {
+            if (!callStartTime) return;
+            
+            const elapsed = Math.floor((Date.now() - callStartTime) / 1000);
+            const minutes = Math.floor(elapsed / 60);
+            const seconds = elapsed % 60;
+            
+            document.getElementById('callDuration').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function updateMetrics(scenario) {
+            document.getElementById('responseTime').textContent = (500 + Math.random() * 1000).toFixed(0) + 'ms';
+            document.getElementById('sentiment').textContent = scenario.sentiment;
+            document.getElementById('confidence').textContent = scenario.confidence;
+        }
+
+        function connectWebSocket() {
+            try {
+                ws = new WebSocket('ws://localhost:8002/ws');
+                
+                ws.onopen = function() {
+                    console.log('Connected to live demo WebSocket');
+                };
+                
+                ws.onmessage = function(event) {
+                    const data = JSON.parse(event.data);
+                    console.log('Real-time update:', data);
+                    // Handle real-time updates from the backend
+                };
+                
+                ws.onerror = function(error) {
+                    console.log('WebSocket error:', error);
+                };
+            } catch (error) {
+                console.log('WebSocket connection failed:', error);
+            }
+        }
+
+        // Audio simulation functions
+        function playCustomerAudio() {
+            // Simulate audio feedback
+            alert('🔊 Playing customer audio (simulated)');
+        }
+
+        function playAgentAudio() {
+            // This could integrate with the actual TTS system
+            fetch('http://localhost:8002/api/demo/status')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.audio_available) {
+                        alert('🔊 Playing AI-generated voice response (TTS enabled)');
+                    } else {
+                        alert('🔊 Audio simulation (install gTTS for real audio)');
+                    }
+                })
+                .catch(() => {
+                    alert('🔊 Audio simulation mode');
+                });
+        }
+
+        function toggleMic() {
+            alert('🎤 Microphone toggled (speech recognition simulation)');
+        }
+
+        function toggleSpeaker() {
+            alert('📢 Speaker mode toggled');
+        }
+
+        function simulateResponse() {
+            if (callActive) {
+                alert('🤖 Generating AI response...');
+                // This could trigger actual AI processing
+            }
+        }
+
+        function escalateCall() {
+            if (callActive) {
+                alert('👥 Call escalated to human agent');
+                endCall();
+            }
+        }
+
+        // Auto-start demo on page load
+        window.onload = function() {
+            setTimeout(() => {
+                if (confirm('🎭 Start live call demo automatically?')) {
+                    startCall();
+                }
+            }, 1000);
+        };
+    </script>
+</body>
+</html>'''
+    return HTMLResponse(content=html_content)
 
 
 @app.get("/voice-demo", response_class=HTMLResponse)
 async def voice_demo():
     """Serve the voice-enabled demo interface"""
-    return FileResponse("templates/voice_demo.html")
+    html_content = '''<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice-Enabled Live Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #1a1a2e;
+            color: white;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #16213e;
+            border-radius: 10px;
+            padding: 30px;
+        }
+        .voice-controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .voice-btn {
+            background: #e94560;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            margin: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        .voice-btn:hover {
+            background: #d63447;
+            transform: scale(1.05);
+        }
+        .voice-btn.listening {
+            background: #27ae60;
+            animation: pulse 1s infinite;
+        }
+        .transcript {
+            background: #0f3460;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            min-height: 100px;
+        }
+        .ai-response {
+            background: #0d7377;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            min-height: 100px;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 Voice-Enabled Live Call Demo</h1>
+        <p>Use your browser's microphone and speech synthesis for real-time interaction!</p>
+        
+        <div class="voice-controls">
+            <button class="voice-btn" id="startBtn" onclick="startListening()">🎤 Start Speaking</button>
+            <button class="voice-btn" id="stopBtn" onclick="stopListening()" disabled>⏹️ Stop</button>
+            <button class="voice-btn" onclick="simulateAICall()">🤖 Simulate AI Call</button>
+        </div>
+        
+        <div class="transcript">
+            <h3>📝 What you said:</h3>
+            <div id="transcript"></div>
+        </div>
+        
+        <div class="ai-response">
+            <h3>🤖 AI Agent Response:</h3>
+            <div id="aiResponse"></div>
+            <button class="voice-btn" onclick="speakResponse()">🔊 Play Response</button>
+        </div>
+    </div>
+
+    <script>
+        let recognition;
+        let isListening = false;
+        let isConversationMode = false;
+        let silenceTimer;
+        let isProcessingAI = false;
+        
+        // Generate unique session ID for this conversation
+        const sessionId = 'voice_session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        
+        // Initialize speech recognition
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+        } else if ('SpeechRecognition' in window) {
+            recognition = new SpeechRecognition();
+        }
+        
+        if (recognition) {
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+            
+            recognition.onresult = function(event) {
+                let transcript = '';
+                let interimTranscript = '';
+                
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    if (event.results[i].isFinal) {
+                        transcript += event.results[i][0].transcript;
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
+                }
+                
+                // Show live transcript
+                document.getElementById('transcript').textContent = transcript + interimTranscript;
+                
+                // Process final results automatically in conversation mode
+                if (transcript && event.results[event.results.length - 1].isFinal && isConversationMode && !isProcessingAI) {
+                    clearTimeout(silenceTimer);
+                    
+                    // Brief pause before processing to allow for additional speech
+                    silenceTimer = setTimeout(() => {
+                        if (transcript.trim() && !isProcessingAI) {
+                            processWithAI(transcript.trim());
+                        }
+                    }, 1000); // 1 second pause after final speech
+                }
+            };
+            
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error:', event.error);
+                if (event.error === 'no-speech' && isConversationMode) {
+                    // Automatically restart in conversation mode
+                    setTimeout(restartListening, 1000);
+                } else {
+                    stopListening();
+                }
+            };
+            
+            recognition.onend = function() {
+                if (isConversationMode && !isProcessingAI) {
+                    // Automatically restart listening in conversation mode
+                    setTimeout(restartListening, 500);
+                }
+            };
+        }
+        
+        function startConversation() {
+            isConversationMode = true;
+            startListening();
+            
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('pauseBtn').disabled = false;
+            document.getElementById('endBtn').disabled = false;
+            document.getElementById('transcript').textContent = 'Conversation started - you can speak naturally...';
+            document.getElementById('aiResponse').textContent = 'Hello! I\'m ready to help you with your EMI. What would you like to know?';
+            
+            // Welcome message
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance('Hello! I\'m ready to help you with your EMI. What would you like to know?');
+                utterance.rate = 0.9;
+                speechSynthesis.speak(utterance);
+            }
+        }
+        
+        function pauseConversation() {
+            isConversationMode = false;
+            stopListening();
+            
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('pauseBtn').disabled = true;
+            document.getElementById('transcript').textContent = 'Conversation paused - click "Start Conversation" to resume';
+        }
+        
+        function endConversation() {
+            isConversationMode = false;
+            stopListening();
+            
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('pauseBtn').disabled = true;
+            document.getElementById('endBtn').disabled = true;
+            document.getElementById('transcript').textContent = 'Conversation ended';
+            document.getElementById('aiResponse').textContent = 'Thank you for using our EMI service. Have a great day!';
+        }
+        
+        function startListening() {
+            if (recognition && !isListening) {
+                try {
+                    recognition.start();
+                    isListening = true;
+                } catch (e) {
+                    console.log('Recognition already started');
+                }
+            }
+        }
+        
+        function stopListening() {
+            if (recognition && isListening) {
+                recognition.stop();
+                isListening = false;
+            }
+        }
+        
+        function restartListening() {
+            if (isConversationMode && !isProcessingAI) {
+                stopListening();
+                setTimeout(() => {
+                    startListening();
+                }, 100);
+            }
+        }
+        
+        async function processWithAI(userInput) {
+            isProcessingAI = true;
+            document.getElementById('aiResponse').textContent = '🤖 AI is processing your request...';
+            
+            // Stop listening while processing
+            if (isConversationMode) {
+                stopListening();
+            }
+            
+            try {
+                // Call the actual Google AI backend
+                const response = await fetch('/api/voice/process', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_input: userInput,
+                        session_id: sessionId
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    // Extract the AI response - it's already parsed by the backend
+                    let aiText = '';
+                    if (data.ai_response && data.ai_response.response) {
+                        // The response is already clean text from the backend
+                        aiText = data.ai_response.response;
+                    } else {
+                        aiText = 'I can help you with your EMI payment. How can I assist you today?';
+                    }
+                    
+                    document.getElementById('aiResponse').textContent = aiText;
+                    
+                    // Auto-speak the response and then restart listening
+                    if ('speechSynthesis' in window) {
+                        const utterance = new SpeechSynthesisUtterance(aiText);
+                        utterance.rate = 0.9;
+                        utterance.pitch = 1;
+                        utterance.volume = 0.8;
+                        
+                        utterance.onend = function() {
+                            // Restart listening after AI finishes speaking
+                            if (isConversationMode) {
+                                isProcessingAI = false;
+                                setTimeout(() => {
+                                    document.getElementById('transcript').textContent = 'Listening for your response...';
+                                    restartListening();
+                                }, 1000); // 1 second pause after AI speaks
+                            }
+                        };
+                        
+                        speechSynthesis.speak(utterance);
+                    } else {
+                        // If no speech synthesis, restart listening immediately
+                        if (isConversationMode) {
+                            isProcessingAI = false;
+                            setTimeout(() => {
+                                document.getElementById('transcript').textContent = 'Listening for your response...';
+                                restartListening();
+                            }, 2000); // 2 second pause to read response
+                        }
+                    }
+                } else {
+                    // Handle error case
+                    const fallbackText = data.fallback_response || 'I apologize, but I\'m having technical difficulties. Please try again.';
+                    document.getElementById('aiResponse').textContent = fallbackText;
+                    
+                    // Restart listening after error
+                    if (isConversationMode) {
+                        isProcessingAI = false;
+                        setTimeout(restartListening, 2000);
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Error calling AI API:', error);
+                const fallbackText = 'I\'m sorry, I\'m having trouble connecting right now. Please try again in a moment.';
+                document.getElementById('aiResponse').textContent = fallbackText;
+                
+                // Restart listening after error
+                if (isConversationMode) {
+                    isProcessingAI = false;
+                    setTimeout(restartListening, 2000);
+                }
+            }
+        }
+        
+        function speakResponse() {
+            const text = document.getElementById('aiResponse').textContent;
+            if ('speechSynthesis' in window && text) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 0.9;
+                utterance.pitch = 1;
+                utterance.volume = 0.8;
+                speechSynthesis.speak(utterance);
+            }
+        }
+        
+        function simulateAICall() {
+            const scenarios = [
+                "Hello, I received a call about my EMI payment",
+                "I'm having financial difficulties this month",
+                "Can I get an extension on my payment?",
+                "How much is the extension fee?",
+                "Please process the extension for me"
+            ];
+            
+            const randomScenario = scenarios[Math.floor(Math.random() * scenarios.length)];
+            document.getElementById('transcript').textContent = randomScenario;
+            processWithAI(randomScenario);
+        }
+        
+        // Check for browser support
+        window.onload = function() {
+            if (!recognition) {
+                alert('Speech recognition not supported in this browser. Try Chrome or Edge for full voice features.');
+            }
+            
+            if (!('speechSynthesis' in window)) {
+                alert('Speech synthesis not supported in this browser.');
+            }
+        };
+    </script>
+</body>
+</html>'''
+    return HTMLResponse(content=html_content)
 
 
 @app.get("/simple", response_class=HTMLResponse)
