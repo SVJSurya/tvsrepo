@@ -417,7 +417,7 @@
             <h3>🔊 Audio Demo Controls</h3>
             <div class="control-group">
                 <button class="btn btn-success" onclick="playDemoMessage('english')">
-                    🗣️ Play English Message
+                    � Play English Message
                 </button>
                 <button class="btn btn-success" onclick="playDemoMessage('hindi')">
                     🗣️ Play Hindi Message
@@ -632,7 +632,7 @@
                 { text: "📶 Connecting to network...", delay: 1500 },
                 { text: "✅ Call connected successfully", delay: 1000 },
                 { text: "🤖 Playing AI-generated voice message...", delay: 2000, action: 'playAudio' },
-                { text: "👂 Waiting for customer response...", delay: 1000, action: 'waitForInput' },
+                { text: "👂 Waiting for customer response...", delay: 3000, action: 'waitForInput' },
                 // Dynamic steps will be added based on user input
             ];
 
@@ -874,11 +874,18 @@
                     responseDiv.innerHTML = `
                         <div class="response-message">
                             <strong>✅ Payment Link Generated Successfully!${modeText}</strong><br>
+                            👤 <strong>Customer:</strong> ${getCustomerName(email)}<br>
                             📧 <strong>Email:</strong> ${email}<br>
                             🆔 <strong>Payment ID:</strong> ${result.payment_id}<br>
-                            � <strong>Payment Link:</strong> <a href="${result.payment_link}" target="_blank" style="color: #007bff;">${result.payment_link}</a><br>
+                            <strong>🔗 Payment Link:</strong> <a href="${result.payment_link}" target="_blank" style="color: #007bff;">${result.payment_link}</a><br>
                             📝 <strong>Status:</strong> ${result.message}
                             ${isDemoMode ? '<br><br><strong>🎭 Demo Mode:</strong> Payment link generated for demonstration. Check server console for details.' : ''}
+                            <br><br>
+                            <button onclick="resendPaymentLink('${email}', getCustomerName('${email}'), '${result.payment_id}')" 
+                                    style="background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-right: 10px;">
+                                🔄 Resend Link
+                            </button>
+                            <small style="color: #666;">Need to send the link again? Click the resend button above.</small>
                         </div>
                     `;
 
@@ -1010,6 +1017,122 @@
             const modal = document.getElementById('audioModal');
             if (event.target === modal) {
                 closeAudioModal();
+            }
+        }
+
+        // Extract customer name from email
+        function getCustomerName(email) {
+            if (!email) return 'Customer';
+            
+            // Extract name from email (before @ symbol)
+            const namePart = email.split('@')[0];
+            
+            // Convert to readable format (replace dots/underscores with spaces, capitalize)
+            const formattedName = namePart
+                .replace(/[._]/g, ' ')
+                .toLowerCase()
+                .split(' ')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' ');
+            
+            return formattedName || 'Customer';
+        }
+
+        // Resend payment link functionality
+        async function resendPaymentLink(email, customerName, originalPaymentId) {
+            const button = event.target;
+            const originalText = button.innerHTML;
+            
+            // Show loading state
+            button.innerHTML = '⏳ Resending...';
+            button.disabled = true;
+            
+            try {
+                const response = await fetch('/api/payment/send-link', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        session_id: 'resend_' + Date.now(),
+                        customer_name: customerName,
+                        original_payment_id: originalPaymentId
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Show success feedback
+                    button.innerHTML = '✅ Resent!';
+                    button.style.background = '#28a745';
+                    
+                    // Show notification
+                    const notification = document.createElement('div');
+                    notification.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #28a745; color: white; padding: 15px; border-radius: 8px; z-index: 1000; box-shadow: 0 4px 8px rgba(0,0,0,0.2);';
+                    notification.innerHTML = `✅ Payment link resent to ${email}`;
+                    document.body.appendChild(notification);
+                    
+                    setTimeout(() => {
+                        notification.remove();
+                        button.innerHTML = originalText;
+                        button.disabled = false;
+                        button.style.background = '#28a745';
+                    }, 3000);
+                } else {
+                    throw new Error(result.message || 'Failed to resend');
+                }
+            } catch (error) {
+                console.error('Error resending payment link:', error);
+                button.innerHTML = '❌ Failed';
+                button.style.background = '#dc3545';
+                
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                    button.style.background = '#28a745';
+                }, 3000);
+            }
+        }
+
+        // Copy payment link to clipboard
+        async function copyPaymentLink(paymentLink) {
+            try {
+                await navigator.clipboard.writeText(paymentLink);
+                
+                const button = event.target;
+                const originalText = button.innerHTML;
+                
+                button.innerHTML = '✅ Copied!';
+                button.style.background = '#28a745';
+                
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.style.background = '#6c757d';
+                }, 2000);
+                
+                // Show notification
+                const notification = document.createElement('div');
+                notification.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #17a2b8; color: white; padding: 15px; border-radius: 8px; z-index: 1000; box-shadow: 0 4px 8px rgba(0,0,0,0.2);';
+                notification.innerHTML = '📋 Payment link copied to clipboard!';
+                document.body.appendChild(notification);
+                
+                setTimeout(() => notification.remove(), 3000);
+            } catch (error) {
+                console.error('Failed to copy payment link:', error);
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = paymentLink;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                const button = event.target;
+                const originalText = button.innerHTML;
+                button.innerHTML = '✅ Copied!';
+                setTimeout(() => button.innerHTML = originalText, 2000);
             }
         }
     </script>
